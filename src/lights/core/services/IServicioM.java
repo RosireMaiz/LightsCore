@@ -272,7 +272,7 @@ public abstract class IServicioM<T> {
 
 			objects = getDAO().search(search);
 		}
-		System.out.println(getPath().substring(1) + ".CONSULTAR_TODOS");
+		
 		auditar(idSesion, getTable() , AccionEnum.CONSULTAR.ordinal(), getPath().substring(1) + ".CONSULTAR_TODOS", 0, "");
 		
 		if (objects.size() == 0) {
@@ -402,7 +402,7 @@ public abstract class IServicioM<T> {
 		
 		Map<String, Object> mapa = new HashMap<String, Object>();
 		
-		mapa.put("count", count);
+		mapa.put(IPayloadResponse.COUNT, count);
 		
 		return buildAnswerSuccess(SUCCESS_7, mapa);
 	};
