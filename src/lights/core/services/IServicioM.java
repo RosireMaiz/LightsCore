@@ -30,22 +30,22 @@ import lights.core.googlecode.genericdao.search.Search;
 import lights.core.googlecode.genericdao.search.Sort;
 import lights.core.payload.request.IPayloadRequest;
 import lights.core.payload.response.IPayloadResponse;
-import lights.seguridad.enums.AccionEnum;
+import ve.smile.seguridad.enums.AccionEnum;
 
 public abstract class IServicioM<T> {
 	
 	public static final String CONTACT = "El error ya fue registrado, por favor contacte al administrador.";
 	public static final String ERROR_UNKNOWN = "Error Code: ???-Error Desconocido (Servicios Web). " + CONTACT;
-	public static final String ERROR_1 = "Error Code: 001-Sesión no válida.";
-	public static final String ERROR_2 = "Error Code: 002-Sesión inactiva. ";
+	public static final String ERROR_1 = "Error Code: 001-SesiÃ³n no vÃ¡lida.";
+	public static final String ERROR_2 = "Error Code: 002-SesiÃ³n inactiva. ";
 	public static final String ERROR_3 = "Error Code: 003-Ha ocurrido un error al construir el error. " + CONTACT;
 	public static final String ERROR_4 = "Error Code: 004-Ha ocurrido un error y el registro no pudo ser eliminado";
 	public static final String ERROR_5 = "Error Code: 005-La tabla sobre la cual se quiere realizar esta operacion no se encuentra registrada en la base de datos";
-	public static final String ERROR_6 = "Error Code: 006-El método (DAO) utilizado no se encuentra registrada en la base de datos";
+	public static final String ERROR_6 = "Error Code: 006-El mÃ©todo (DAO) utilizado no se encuentra registrada en la base de datos";
 	public static final String ERROR_7 = "Error Code: 007-Propiedad %s no encontrada en la entidad";
-	public static final String ERROR_8 = "Error Code: 008-Access Token Inválida. ";
+	public static final String ERROR_8 = "Error Code: 008-Access Token InvÃ¡lida. ";
 	public static final String INFORMATION_1 = "Information Code: 001-Registro %d no encontrado";
-	public static final String INFORMATION_2 = "Information Code: 002-No se ha encontrado ningún registro";
+	public static final String INFORMATION_2 = "Information Code: 002-No se ha encontrado ningÃºn registro";
 	
 	public static final String SUCCESS_1 = "Success Code: 001-Registro consultado con exito";
 	public static final String SUCCESS_2 = "Success Code: 002-Registros consultados con exito";
@@ -499,12 +499,12 @@ public abstract class IServicioM<T> {
 	
 	public String decodeUrl(String value) {
 //		System.out.println("Antes: " + value);
-		value = value.replace("%C3%91", "Ñ");
-		value = value.replace("%C3%93", "Ó");
-		value = value.replace("%C3%9A", "Ú");
-		value = value.replace("%C3%8D", "Í");
-		value = value.replace("%C3%89", "É");
-		value = value.replace("%C3%81", "Á");
+		value = value.replace("%C3%91", "Ã‘");
+		value = value.replace("%C3%93", "Ã“");
+		value = value.replace("%C3%9A", "Ãš");
+		value = value.replace("%C3%8D", "Ã�");
+		value = value.replace("%C3%89", "Ã‰");
+		value = value.replace("%C3%81", "Ã�");
 		value = value.replace("%20", " ");
 
 		

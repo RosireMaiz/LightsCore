@@ -60,8 +60,8 @@
 			<version>20140107</version>
 		</dependency>
 		<dependency>
-			<groupId>SeguridadDatos</groupId>
-			<artifactId>SeguridadDatos</artifactId>
+			<groupId>SmileDatos</groupId>
+			<artifactId>SmileDatos</artifactId>
 			<version>0.0.1</version>
 		</dependency>
 	</dependencies>
