@@ -4,6 +4,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -25,6 +26,7 @@ public abstract class IService<T extends IPayloadResponse<V>, U extends IPayload
 	public static final String UPDATE = "update";
 	public static final String DELETE = "delete";
 	public static final String COUNT = "count";
+	public static final String COUNT_CRITERIA = "count/criteria";
 	public static final String FIND_ONE = "find/one";
 	public static final String FIND_PAGINATION = "find/pagination";
 	public static final String FIND_CRITERIA = "find/criteria";
@@ -131,6 +133,16 @@ public abstract class IService<T extends IPayloadResponse<V>, U extends IPayload
 		return doGet(getUrlService(COUNT) + "/" + getIdSesion() + "/" + getAccessToken());
 	};
 	
+	public T contarCriterios(TypeQuery typeQuery, Map<String, String> criterios) {
+		String urlCriterios = "typeQueryToFind=" + typeQuery.name();
+
+		for (String key : criterios.keySet()) {
+			urlCriterios += ("&" + key + "=" + criterios.get(key));
+		}
+		
+		return doGet(getUrlService(COUNT_CRITERIA) + "/" + getIdSesion() + "/" + getAccessToken() + "?" + urlCriterios);
+	};
+	
 	public T incluir(V object) {
 		return doPost(getUrlService(NEW), object);
 	};
@@ -139,12 +151,50 @@ public abstract class IService<T extends IPayloadResponse<V>, U extends IPayload
 		return doPost(getUrlService(UPDATE), object);
 	};
 	
+	public T doPost(String urlServiceToConsume, List<V> objects) {
+		return doPost(urlServiceToConsume, objects, false, new HashMap<String, Object>());
+	}
+	
+	public T doPost(String urlServiceToConsume, List<V> objects, HashMap<String, Object> parametros) {
+		return doPost(urlServiceToConsume, objects, false, parametros);
+	}
+	
 	public T doPost(String urlServiceToConsume, V object) {
 		return doPost(urlServiceToConsume, object, false, new HashMap<String, Object>());
 	}
 	
 	public T doPost(String urlServiceToConsume, V object, HashMap<String, Object> parametros) {
 		return doPost(urlServiceToConsume, object, false, parametros);
+	}
+	
+	public T doPost(String urlServiceToConsume, List<V> objects, Boolean free, HashMap<String, Object> parametros) {
+		T payload = null;
+
+		try {
+			RestTemplate restTemplate = new RestTemplate();
+			restTemplate.getMessageConverters()
+	        	.add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
+
+			U request = newInstanceOfPayloadRequest();
+			
+			if (!free) {
+				request.setIdSesion(getIdSesion());
+				request.setAccessToken(getAccessToken());
+			}
+
+			request.setObjetos(objects);
+			request.setParametros(parametros);
+
+			Gson gson = new Gson();
+
+			String data = restTemplate.postForObject(urlServiceToConsume, request, String.class);
+
+			payload = (T) gson.fromJson(data, getClassPayloadResponse());
+		} catch (Exception e) {
+			return buildAnswerError(e);
+		}
+
+		return payload;
 	}
 	
 	public T doPost(String urlServiceToConsume, V object, Boolean free, HashMap<String, Object> parametros) {
@@ -258,7 +308,7 @@ public abstract class IService<T extends IPayloadResponse<V>, U extends IPayload
 		}		
 	}
 	
-	private String getPathToOrderBy(String orderBy) {
+	public String getPathToOrderBy(String orderBy) {
 		if (orderBy.equals("")) {
 			return "";
 		}
