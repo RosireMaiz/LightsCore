@@ -45,7 +45,7 @@ public class Search implements IMutableSearch, Serializable {
 	protected List<Sort> sorts = new ArrayList<Sort>();
 
 	protected List<Field> fields = new ArrayList<Field>();
-	
+
 	protected boolean distinct;
 
 	protected List<String> fetches = new ArrayList<String>();
@@ -72,7 +72,7 @@ public class Search implements IMutableSearch, Serializable {
 		SearchUtil.addFilter(this, filter);
 		return this;
 	}
-	
+
 	public Search addFilters(Filter... filters) {
 		SearchUtil.addFilters(this, filters);
 		return this;
@@ -83,6 +83,14 @@ public class Search implements IMutableSearch, Serializable {
 	 */
 	public Search addFilterEqual(String property, Object value) {
 		SearchUtil.addFilterEqual(this, property, value);
+		return this;
+	}
+
+	/**
+	 * Add a filter that uses the iequal operator.
+	 */
+	public Search addFilterIEqual(String property, Object value) {
+		SearchUtil.addFilterIEqual(this, property, value);
 		return this;
 	}
 
@@ -205,7 +213,7 @@ public class Search implements IMutableSearch, Serializable {
 		SearchUtil.addFilterEmpty(this, property);
 		return this;
 	}
-	
+
 	/**
 	 * Add a filter that uses the IS NOT EMPTY operator.
 	 */
@@ -213,14 +221,13 @@ public class Search implements IMutableSearch, Serializable {
 		SearchUtil.addFilterNotEmpty(this, property);
 		return this;
 	}
-	
+
 	/**
 	 * Add a filter that uses the AND operator.
 	 * 
 	 * <p>
 	 * This takes a variable number of parameters. Any number of <code>Filter
-	 * </code>s can be
-	 * specified.
+	 * </code>s can be specified.
 	 */
 	public Search addFilterAnd(Filter... filters) {
 		SearchUtil.addFilterAnd(this, filters);
@@ -232,8 +239,7 @@ public class Search implements IMutableSearch, Serializable {
 	 * 
 	 * <p>
 	 * This takes a variable number of parameters. Any number of <code>Filter
-	 * </code>s can be
-	 * specified.
+	 * </code>s can be specified.
 	 */
 	public Search addFilterOr(Filter... filters) {
 		SearchUtil.addFilterOr(this, filters);
@@ -255,7 +261,7 @@ public class Search implements IMutableSearch, Serializable {
 		SearchUtil.addFilterSome(this, property, filter);
 		return this;
 	}
-	
+
 	/**
 	 * Add a filter that uses the ALL operator.
 	 */
@@ -263,7 +269,7 @@ public class Search implements IMutableSearch, Serializable {
 		SearchUtil.addFilterAll(this, property, filter);
 		return this;
 	}
-	
+
 	/**
 	 * Add a filter that uses the NONE operator.
 	 */
@@ -271,7 +277,7 @@ public class Search implements IMutableSearch, Serializable {
 		SearchUtil.addFilterNone(this, property, filter);
 		return this;
 	}
-	
+
 	/**
 	 * Add a filter that uses a custom expression.
 	 * 
@@ -291,7 +297,7 @@ public class Search implements IMutableSearch, Serializable {
 		SearchUtil.addFilterCustom(this, expression, values);
 		return this;
 	}
-	
+
 	/**
 	 * Add a filter that uses a custom expression.
 	 * 
@@ -301,7 +307,7 @@ public class Search implements IMutableSearch, Serializable {
 		SearchUtil.addFilterCustom(this, expression, values);
 		return this;
 	}
-	
+
 	public void removeFilter(Filter filter) {
 		SearchUtil.removeFilter(this, filter);
 	}
@@ -335,7 +341,7 @@ public class Search implements IMutableSearch, Serializable {
 		SearchUtil.addSort(this, sort);
 		return this;
 	}
-	
+
 	public Search addSorts(Sort... sorts) {
 		SearchUtil.addSorts(this, sorts);
 		return this;
@@ -408,7 +414,7 @@ public class Search implements IMutableSearch, Serializable {
 		SearchUtil.addField(this, field);
 		return this;
 	}
-	
+
 	public Search addFields(Field... fields) {
 		SearchUtil.addFields(this, fields);
 		return this;
@@ -467,33 +473,34 @@ public class Search implements IMutableSearch, Serializable {
 	public void clearFields() {
 		SearchUtil.clearFields(this);
 	}
-	
+
 	public boolean isDistinct() {
 		return distinct;
 	}
-	
+
 	public IMutableSearch setDistinct(boolean distinct) {
 		this.distinct = distinct;
 		return this;
 	}
 
-//	public int getResultMode() {
-//		return resultMode;
-//	}
-//
-//	public Search setResultMode(int resultMode) {
-//		if (resultMode < 0 || resultMode > 4)
-//			throw new IllegalArgumentException("Result Mode ( " + resultMode + " ) is not a valid option.");
-//		this.resultMode = resultMode;
-//		return this;
-//	}
+	// public int getResultMode() {
+	// return resultMode;
+	// }
+	//
+	// public Search setResultMode(int resultMode) {
+	// if (resultMode < 0 || resultMode > 4)
+	// throw new IllegalArgumentException("Result Mode ( " + resultMode +
+	// " ) is not a valid option.");
+	// this.resultMode = resultMode;
+	// return this;
+	// }
 
 	// Fetches
 	public Search addFetch(String property) {
 		SearchUtil.addFetch(this, property);
 		return this;
 	}
-	
+
 	public Search addFetches(String... properties) {
 		SearchUtil.addFetches(this, properties);
 		return this;

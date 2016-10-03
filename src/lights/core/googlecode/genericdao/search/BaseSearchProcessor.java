@@ -51,13 +51,14 @@ import org.slf4j.LoggerFactory;
  * 
  * This is an abstract class. A subclass must be used to implement individual
  * query languages. Currently only HQL query language is supported (
- * <code>com.googlecode.genericdao.dao.hibernate.HibernateSearchToQLProcessor</code>). The that
- * implementation could be used for EQL query language as well with no or minor
- * modifications.
+ * <code>com.googlecode.genericdao.dao.hibernate.HibernateSearchToQLProcessor</code>
+ * ). The that implementation could be used for EQL query language as well with
+ * no or minor modifications.
  */
 public abstract class BaseSearchProcessor {
 
-	private static Logger logger = LoggerFactory.getLogger(BaseSearchProcessor.class);
+	private static Logger logger = LoggerFactory
+			.getLogger(BaseSearchProcessor.class);
 
 	protected static int QLTYPE_HQL = 0;
 	protected static int QLTYPE_EQL = 1;
@@ -72,7 +73,8 @@ public abstract class BaseSearchProcessor {
 
 	protected BaseSearchProcessor(int qlType, MetadataUtil metadataUtil) {
 		if (metadataUtil == null) {
-			throw new IllegalArgumentException("A SearchProcessor cannot be initialized with a null MetadataUtil.");
+			throw new IllegalArgumentException(
+					"A SearchProcessor cannot be initialized with a null MetadataUtil.");
 		}
 		this.qlType = qlType;
 		this.metadataUtil = metadataUtil;
@@ -102,19 +104,24 @@ public abstract class BaseSearchProcessor {
 	 * specified as named parameters ":pX", where X is the index of the
 	 * parameter value in paramList.
 	 */
-	public String generateQL(Class<?> entityClass, ISearch search, List<Object> paramList) {
+	public String generateQL(Class<?> entityClass, ISearch search,
+			List<Object> paramList) {
 		if (entityClass == null)
-			throw new NullPointerException("The entity class for a search cannot be null");
+			throw new NullPointerException(
+					"The entity class for a search cannot be null");
 
 		SearchContext ctx = new SearchContext(entityClass, rootAlias, paramList);
 
 		List<Field> fields = checkAndCleanFields(search.getFields());
-		
+
 		applyFetches(ctx, checkAndCleanFetches(search.getFetches()), fields);
-		
+
 		String select = generateSelectClause(ctx, fields, search.isDistinct());
-		String where = generateWhereClause(ctx, checkAndCleanFilters(search.getFilters()), search.isDisjunction());
-		String orderBy = generateOrderByClause(ctx, checkAndCleanSorts(search.getSorts()));
+		String where = generateWhereClause(ctx,
+				checkAndCleanFilters(search.getFilters()),
+				search.isDisjunction());
+		String orderBy = generateOrderByClause(ctx,
+				checkAndCleanSorts(search.getSorts()));
 		String from = generateFromClause(ctx, true);
 
 		StringBuilder sb = new StringBuilder();
@@ -139,13 +146,17 @@ public abstract class BaseSearchProcessor {
 	 * <b>NOTE:</b> Returns null if column operators are used in the search.
 	 * Such a search will always return 1 row.
 	 */
-	public String generateRowCountQL(Class<?> entityClass, ISearch search, List<Object> paramList) {
+	public String generateRowCountQL(Class<?> entityClass, ISearch search,
+			List<Object> paramList) {
 		if (entityClass == null)
-			throw new NullPointerException("The entity class for a search cannot be null");
+			throw new NullPointerException(
+					"The entity class for a search cannot be null");
 
 		SearchContext ctx = new SearchContext(entityClass, rootAlias, paramList);
 
-		String where = generateWhereClause(ctx, checkAndCleanFilters(search.getFilters()), search.isDisjunction());
+		String where = generateWhereClause(ctx,
+				checkAndCleanFilters(search.getFilters()),
+				search.isDisjunction());
 		String from = generateFromClause(ctx, false);
 
 		boolean useOperator = false, notUseOperator = false;
@@ -168,7 +179,8 @@ public abstract class BaseSearchProcessor {
 			}
 		}
 		if (useOperator && notUseOperator) {
-			throw new Error("A search can not have a mix of fields with operators and fields without operators.");
+			throw new Error(
+					"A search can not have a mix of fields with operators and fields without operators.");
 		} else if (useOperator) {
 			return null; // if we're using column operators, the query will
 							// always return 1 result.
@@ -190,8 +202,9 @@ public abstract class BaseSearchProcessor {
 			}
 			sb.append(")");
 		} else {
-			throw new IllegalArgumentException("Unfortunately, Hibernate Generic DAO does not currently support "
-					+ "the count operation on a search that has distinct set with multiple fields.");
+			throw new IllegalArgumentException(
+					"Unfortunately, Hibernate Generic DAO does not currently support "
+							+ "the count operation on a search that has distinct set with multiple fields.");
 		}
 		sb.append(from);
 		sb.append(where);
@@ -206,7 +219,8 @@ public abstract class BaseSearchProcessor {
 	 * Internal method for generating the select clause based on the fields of
 	 * the given search.
 	 */
-	protected String generateSelectClause(SearchContext ctx, List<Field> fields, boolean distinct) {
+	protected String generateSelectClause(SearchContext ctx,
+			List<Field> fields, boolean distinct) {
 
 		StringBuilder sb = null;
 		boolean useOperator = false, notUseOperator = false;
@@ -231,19 +245,21 @@ public abstract class BaseSearchProcessor {
 						appendCustomExpression(sb, ctx, field.getProperty());
 					}
 				} else {
-				
+
 					String prop;
-					if (field.getProperty() == null || "".equals(field.getProperty())) {
+					if (field.getProperty() == null
+							|| "".equals(field.getProperty())) {
 						prop = ctx.getRootAlias();
 					} else {
-						AliasNode aliasNodeForProperty = getAliasForPathIfItExists(ctx, field.getProperty());
+						AliasNode aliasNodeForProperty = getAliasForPathIfItExists(
+								ctx, field.getProperty());
 						if (aliasNodeForProperty != null) {
 							prop = aliasNodeForProperty.alias;
 						} else {
 							prop = getPathRef(ctx, field.getProperty());
 						}
 					}
-	
+
 					switch (field.getOperator()) {
 					case Field.OP_AVG:
 						sb.append("avg(");
@@ -288,7 +304,8 @@ public abstract class BaseSearchProcessor {
 				return "select " + ctx.getRootAlias();
 		}
 		if (useOperator && notUseOperator) {
-			throw new Error("A search can not have a mix of fields with operators and fields without operators.");
+			throw new Error(
+					"A search can not have a mix of fields with operators and fields without operators.");
 		}
 		return sb.toString();
 	}
@@ -296,7 +313,8 @@ public abstract class BaseSearchProcessor {
 	/**
 	 * Apply the fetch list to the alias tree in the search context.
 	 */
-	protected void applyFetches(SearchContext ctx, List<String> fetches, List<Field> fields) {
+	protected void applyFetches(SearchContext ctx, List<String> fetches,
+			List<Field> fields) {
 		if (fetches != null) {
 			// apply fetches
 			boolean hasFetches = false, hasFields = false;
@@ -343,9 +361,10 @@ public abstract class BaseSearchProcessor {
 	 * <code>doEagerFetching</code> is <code>true</code>. <b>NOTE:</b> When
 	 * using eager fetching, <code>applyFetches()</code> must be executed first.
 	 */
-	protected String generateFromClause(SearchContext ctx, boolean doEagerFetching) {
+	protected String generateFromClause(SearchContext ctx,
+			boolean doEagerFetching) {
 		StringBuilder sb = new StringBuilder(" from ");
-		
+
 		sb.append(getMetadataUtil().getEntityName());
 		sb.append(" ");
 		sb.append(ctx.getRootAlias());
@@ -408,7 +427,8 @@ public abstract class BaseSearchProcessor {
 			}
 			if (sort.isCustomExpression()) {
 				appendCustomExpression(sb, ctx, sort.getProperty());
-			} else if (sort.isIgnoreCase() && metadataUtil.isString(ctx.rootClass, sort.getProperty())) {
+			} else if (sort.isIgnoreCase()
+					&& metadataUtil.isString(ctx.rootClass, sort.getProperty())) {
 				sb.append("lower(");
 				sb.append(getPathRef(ctx, sort.getProperty()));
 				sb.append(")");
@@ -427,14 +447,16 @@ public abstract class BaseSearchProcessor {
 	 * Internal method for generating where clause for given search. Uses filter
 	 * options from search.
 	 */
-	protected String generateWhereClause(SearchContext ctx, List<Filter> filters, boolean isDisjunction) {
+	protected String generateWhereClause(SearchContext ctx,
+			List<Filter> filters, boolean isDisjunction) {
 		String content = null;
 		if (filters == null || filters.size() == 0) {
 			return "";
 		} else if (filters.size() == 1) {
 			content = filterToQL(ctx, filters.get(0));
 		} else {
-			Filter junction = new Filter(null, filters, isDisjunction ? Filter.OP_OR : Filter.OP_AND);
+			Filter junction = new Filter(null, filters,
+					isDisjunction ? Filter.OP_OR : Filter.OP_AND);
 			content = filterToQL(ctx, junction);
 		}
 
@@ -474,11 +496,16 @@ public abstract class BaseSearchProcessor {
 		case Filter.OP_NOT_NULL:
 			return getPathRef(ctx, property) + " is not null";
 		case Filter.OP_IN:
-			return getPathRef(ctx, property) + " in (" + param(ctx, value) + ")";
+			return getPathRef(ctx, property) + " in (" + param(ctx, value)
+					+ ")";
 		case Filter.OP_NOT_IN:
-			return getPathRef(ctx, property) + " not in (" + param(ctx, value) + ")";
+			return getPathRef(ctx, property) + " not in (" + param(ctx, value)
+					+ ")";
 		case Filter.OP_EQUAL:
 			return getPathRef(ctx, property) + " = " + param(ctx, value);
+		case Filter.OP_IEQUAL:
+			return "lower(" + getPathRef(ctx, property) + ") = lower("
+					+ param(ctx, value) + ")";
 		case Filter.OP_NOT_EQUAL:
 			return getPathRef(ctx, property) + " != " + param(ctx, value);
 		case Filter.OP_GREATER_THAN:
@@ -490,16 +517,19 @@ public abstract class BaseSearchProcessor {
 		case Filter.OP_LESS_OR_EQUAL:
 			return getPathRef(ctx, property) + " <= " + param(ctx, value);
 		case Filter.OP_LIKE:
-			return getPathRef(ctx, property) + " like " + param(ctx, value.toString());
+			return getPathRef(ctx, property) + " like "
+					+ param(ctx, value.toString());
 		case Filter.OP_ILIKE:
-			return "lower(" + getPathRef(ctx, property) + ") like lower(" + param(ctx, value.toString()) + ")";
+			return "lower(" + getPathRef(ctx, property) + ") like lower("
+					+ param(ctx, value.toString()) + ")";
 		case Filter.OP_AND:
 		case Filter.OP_OR:
 			if (!(value instanceof List)) {
 				return null;
 			}
 
-			String op = filter.getOperator() == Filter.OP_AND ? " and " : " or ";
+			String op = filter.getOperator() == Filter.OP_AND ? " and "
+					: " or ";
 
 			StringBuilder sb = new StringBuilder("(");
 			boolean first = true;
@@ -544,7 +574,8 @@ public abstract class BaseSearchProcessor {
 				return "exists elements(" + getPathRef(ctx, property) + ")";
 			} else if (metadataUtil.isString(ctx.rootClass, property)) {
 				String pathRef = getPathRef(ctx, property);
-				return "(" + pathRef + " is not null and " + pathRef + " != '')";
+				return "(" + pathRef + " is not null and " + pathRef
+						+ " != '')";
 			} else {
 				return getPathRef(ctx, property) + " is not null";
 			}
@@ -552,22 +583,27 @@ public abstract class BaseSearchProcessor {
 			if (!(value instanceof Filter)) {
 				return null;
 			} else if (value instanceof Filter) {
-				String simple = generateSimpleAllOrSome(ctx, property, (Filter) value, "some");
+				String simple = generateSimpleAllOrSome(ctx, property,
+						(Filter) value, "some");
 				if (simple != null) {
 					return simple;
 				} else {
-					return "exists " + generateSubquery(ctx, property, (Filter) value);
+					return "exists "
+							+ generateSubquery(ctx, property, (Filter) value);
 				}
 			}
 		case Filter.OP_ALL:
 			if (!(value instanceof Filter)) {
 				return null;
 			} else if (value instanceof Filter) {
-				String simple = generateSimpleAllOrSome(ctx, property, (Filter) value, "all");
+				String simple = generateSimpleAllOrSome(ctx, property,
+						(Filter) value, "all");
 				if (simple != null) {
 					return simple;
 				} else {
-					return "not exists " + generateSubquery(ctx, property, negate((Filter) value));
+					return "not exists "
+							+ generateSubquery(ctx, property,
+									negate((Filter) value));
 				}
 			}
 		case Filter.OP_NONE:
@@ -580,11 +616,13 @@ public abstract class BaseSearchProcessor {
 				// "not ... some/all ...) it actually ends
 				// up working as desired. TODO: If and when the Hibernate bug is
 				// fixed, this should be switched to "some".
-				String simple = generateSimpleAllOrSome(ctx, property, (Filter) value, "all");
+				String simple = generateSimpleAllOrSome(ctx, property,
+						(Filter) value, "all");
 				if (simple != null) {
 					return "not ( " + simple + " )";
 				} else {
-					return "not exists " + generateSubquery(ctx, property, (Filter) value);
+					return "not exists "
+							+ generateSubquery(ctx, property, (Filter) value);
 				}
 			}
 		case Filter.OP_CUSTOM:
@@ -596,7 +634,8 @@ public abstract class BaseSearchProcessor {
 			appendCustomExpression(sbCustom, ctx, filter.getProperty(), values);
 			return sbCustom.toString();
 		default:
-			throw new IllegalArgumentException("Filter comparison ( " + operator + " ) is invalid.");
+			throw new IllegalArgumentException("Filter comparison ( "
+					+ operator + " ) is invalid.");
 		}
 	}
 
@@ -612,7 +651,8 @@ public abstract class BaseSearchProcessor {
 	 * @param filter
 	 *            - the filter to use for the where clause of the sub-query
 	 */
-	protected String generateSubquery(SearchContext ctx, String property, Filter filter) {
+	protected String generateSubquery(SearchContext ctx, String property,
+			Filter filter) {
 		SearchContext ctx2 = new SearchContext();
 		ctx2.rootClass = metadataUtil.getJavaClass(ctx.rootClass, property);
 		ctx2.setRootAlias(rootAlias + (ctx.nextSubqueryNum++));
@@ -669,7 +709,8 @@ public abstract class BaseSearchProcessor {
 	 *            - a string used to fill in the collection operation. The value
 	 *            should be either "some" or "all".
 	 */
-	protected String generateSimpleAllOrSome(SearchContext ctx, String property, Filter filter, String operation) {
+	protected String generateSimpleAllOrSome(SearchContext ctx,
+			String property, Filter filter, String operation) {
 		if (filter.getProperty() != null && !filter.getProperty().equals(""))
 			return null;
 
@@ -698,9 +739,11 @@ public abstract class BaseSearchProcessor {
 			return null;
 		}
 
-		Object value = InternalUtil.convertIfNeeded(filter.getValue(), metadataUtil.getJavaClass(ctx.rootClass, property));
-		
-		return param(ctx, value) + op + operation + " elements(" + getPathRef(ctx, property) + ")";
+		Object value = InternalUtil.convertIfNeeded(filter.getValue(),
+				metadataUtil.getJavaClass(ctx.rootClass, property));
+
+		return param(ctx, value) + op + operation + " elements("
+				+ getPathRef(ctx, property) + ")";
 	}
 
 	/**
@@ -713,14 +756,17 @@ public abstract class BaseSearchProcessor {
 	 * @return the converted value.
 	 */
 	@SuppressWarnings("rawtypes")
-	protected Object prepareValue(Class<?> rootClass, String property, Object value, boolean isCollection) {
+	protected Object prepareValue(Class<?> rootClass, String property,
+			Object value, boolean isCollection) {
 		if (value == null)
 			return null;
 
 		Class<?> expectedClass;
-		if (property != null && ("class".equals(property) || property.endsWith(".class"))) {
+		if (property != null
+				&& ("class".equals(property) || property.endsWith(".class"))) {
 			expectedClass = Class.class;
-		} else if (property != null && ("size".equals(property) || property.endsWith(".size"))) {
+		} else if (property != null
+				&& ("size".equals(property) || property.endsWith(".size"))) {
 			expectedClass = Integer.class;
 		} else {
 			expectedClass = metadataUtil.getJavaClass(rootClass, property);
@@ -735,13 +781,15 @@ public abstract class BaseSearchProcessor {
 				val2 = new Object[((Collection) value).size()];
 				int i = 0;
 				for (Object item : (Collection) value) {
-					val2[i++] = InternalUtil.convertIfNeeded(item, expectedClass);
+					val2[i++] = InternalUtil.convertIfNeeded(item,
+							expectedClass);
 				}
 			} else {
 				val2 = new Object[((Object[]) value).length];
 				int i = 0;
 				for (Object item : (Object[]) value) {
-					val2[i++] = InternalUtil.convertIfNeeded(item, expectedClass);
+					val2[i++] = InternalUtil.convertIfNeeded(item,
+							expectedClass);
 				}
 			}
 			return val2;
@@ -768,7 +816,8 @@ public abstract class BaseSearchProcessor {
 			@Override
 			public Filter visitAfter(Filter filter) {
 				if (filter.isTakesSingleValue() || filter.isTakesListOfValues()) {
-					return Filter.and(filter, Filter.isNotNull(filter.getProperty()));
+					return Filter.and(filter,
+							Filter.isNotNull(filter.getProperty()));
 				} else {
 					return filter;
 				}
@@ -776,44 +825,62 @@ public abstract class BaseSearchProcessor {
 		}, false);
 
 	}
-	
+
 	/**
-	 * append a custom expression to the string builder, replacing any
-	 * property tokens (i.e "{prop}") with a reference to the property. 
+	 * append a custom expression to the string builder, replacing any property
+	 * tokens (i.e "{prop}") with a reference to the property.
 	 */
-	protected void appendCustomExpression(StringBuilder sb, SearchContext ctx, String expression) {
-		Matcher matcher = Pattern.compile("\\{[\\w\\.]*\\}").matcher(expression);
+	protected void appendCustomExpression(StringBuilder sb, SearchContext ctx,
+			String expression) {
+		Matcher matcher = Pattern.compile("\\{[\\w\\.]*\\}")
+				.matcher(expression);
 		int lastEnd = 0;
 		while (matcher.find()) {
 			sb.append(expression.substring(lastEnd, matcher.start()));
-			sb.append(getPathRef(ctx, expression.substring(matcher.start() + 1, matcher.end() - 1)));
+			sb.append(getPathRef(ctx, expression.substring(matcher.start() + 1,
+					matcher.end() - 1)));
 			lastEnd = matcher.end();
 		}
 		sb.append(expression.substring(lastEnd));
 	}
-	
+
 	/**
-	 * append a custom expression to the string builder, replacing any
-	 * property tokens (i.e "{prop}") with a reference to the property and
-	 * value tokens (i.e. "?n") with params. 
+	 * append a custom expression to the string builder, replacing any property
+	 * tokens (i.e "{prop}") with a reference to the property and value tokens
+	 * (i.e. "?n") with params.
 	 */
-	protected void appendCustomExpression(StringBuilder sb, SearchContext ctx, String expression, List<?> values) {
-		Matcher matcher = Pattern.compile("(\\{[\\w\\.]*\\})|(\\?\\d+\\b)").matcher(expression);
+	protected void appendCustomExpression(StringBuilder sb, SearchContext ctx,
+			String expression, List<?> values) {
+		Matcher matcher = Pattern.compile("(\\{[\\w\\.]*\\})|(\\?\\d+\\b)")
+				.matcher(expression);
 		int lastEnd = 0;
 		while (matcher.find()) {
 			sb.append(expression.substring(lastEnd, matcher.start()));
 			if (expression.charAt(matcher.start()) == '{') {
-				sb.append(getPathRef(ctx, expression.substring(matcher.start() + 1, matcher.end() - 1)));
+				sb.append(getPathRef(ctx, expression.substring(
+						matcher.start() + 1, matcher.end() - 1)));
 			} else {
-				int valueIndex = Integer.valueOf(expression.substring(matcher.start() + 1, matcher.end()));
+				int valueIndex = Integer.valueOf(expression.substring(
+						matcher.start() + 1, matcher.end()));
 				if (valueIndex == 0) {
-					throw new IllegalArgumentException("This custom filter expression (" + expression + ") contains a value placeholder for zero (?0), but placeholders should be numbered starting at ?1.");
+					throw new IllegalArgumentException(
+							"This custom filter expression ("
+									+ expression
+									+ ") contains a value placeholder for zero (?0), but placeholders should be numbered starting at ?1.");
 				}
 				if (values == null || values.isEmpty()) {
-					throw new IllegalArgumentException("This custom filter expression (" + expression + ") calls for a value placeholder number " + valueIndex + ", but no values were specified.");
+					throw new IllegalArgumentException(
+							"This custom filter expression (" + expression
+									+ ") calls for a value placeholder number "
+									+ valueIndex
+									+ ", but no values were specified.");
 				}
 				if (valueIndex > values.size()) {
-					throw new IllegalArgumentException("This custom filter expression (" + expression + ") calls for a value placeholder number " + valueIndex + ", but only " + values.size() + " values were specified.");
+					throw new IllegalArgumentException(
+							"This custom filter expression (" + expression
+									+ ") calls for a value placeholder number "
+									+ valueIndex + ", but only "
+									+ values.size() + " values were specified.");
 				}
 				sb.append(param(ctx, values.get(valueIndex - 1)));
 			}
@@ -912,17 +979,21 @@ public abstract class BaseSearchProcessor {
 						return new String[] { "", path };
 					}
 					pos = currentPath.lastIndexOf('.', pos - 1);
-				} else if (!first && metadataUtil.isEntity(ctx.rootClass, currentPath)) {
+				} else if (!first
+						&& metadataUtil.isEntity(ctx.rootClass, currentPath)) {
 					// when we reach an entity (excluding the very first
 					// segment), we're done
-					return new String[] { currentPath, path.substring(currentPath.length() + 1) };
+					return new String[] { currentPath,
+							path.substring(currentPath.length() + 1) };
 				}
 				first = false;
 
 				// For size, we need to go back to the 'first' behavior
 				// for the next segment.
-				if (pos != -1 && lastSegment.equals("size")
-						&& metadataUtil.isCollection(ctx.rootClass, currentPath.substring(0, pos))) {
+				if (pos != -1
+						&& lastSegment.equals("size")
+						&& metadataUtil.isCollection(ctx.rootClass,
+								currentPath.substring(0, pos))) {
 					first = true;
 				}
 
@@ -959,9 +1030,10 @@ public abstract class BaseSearchProcessor {
 	 * to reference that entity (ex. a4_manager). If there is no alias for the
 	 * given path, one will be created.
 	 */
-	protected AliasNode getOrCreateAlias(SearchContext ctx, String path, boolean setFetch) {
+	protected AliasNode getOrCreateAlias(SearchContext ctx, String path,
+			boolean setFetch) {
 		AliasNode foundNode = getAliasForPathIfItExists(ctx, path);
-		
+
 		if (foundNode != null) {
 			if (setFetch)
 				setFetchOnAliasNodeAndAllAncestors(foundNode);
@@ -972,7 +1044,8 @@ public abstract class BaseSearchProcessor {
 
 			int pos = parts[1].lastIndexOf('.');
 
-			String alias = "a" + (ctx.nextAliasNum++) + "_" + (pos == -1 ? parts[1] : parts[1].substring(pos + 1));
+			String alias = "a" + (ctx.nextAliasNum++) + "_"
+					+ (pos == -1 ? parts[1] : parts[1].substring(pos + 1));
 
 			AliasNode node = new AliasNode(parts[1], alias);
 
@@ -981,7 +1054,7 @@ public abstract class BaseSearchProcessor {
 
 			if (setFetch)
 				setFetchOnAliasNodeAndAllAncestors(node);
-			
+
 			ctx.aliases.put(path, node);
 
 			return node;
@@ -1002,7 +1075,7 @@ public abstract class BaseSearchProcessor {
 			return ctx.aliases.get(path);
 		}
 	}
-	
+
 	protected void setFetchOnAliasNodeAndAllAncestors(AliasNode node) {
 		while (node.parent != null) {
 			node.fetch = true;
@@ -1048,7 +1121,8 @@ public abstract class BaseSearchProcessor {
 		public SearchContext() {
 		}
 
-		public SearchContext(Class<?> rootClass, String rootAlias, List<Object> paramList) {
+		public SearchContext(Class<?> rootClass, String rootAlias,
+				List<Object> paramList) {
 			this.rootClass = rootClass;
 			setRootAlias(rootAlias);
 			this.paramList = paramList;
@@ -1067,8 +1141,8 @@ public abstract class BaseSearchProcessor {
 
 	/**
 	 * <ol>
-	 * <li>Check for injection attack in property strings. <li>The field list
-	 * may not contain nulls.
+	 * <li>Check for injection attack in property strings.
+	 * <li>The field list may not contain nulls.
 	 * </ol>
 	 */
 	protected List<Field> checkAndCleanFields(List<Field> fields) {
@@ -1077,9 +1151,11 @@ public abstract class BaseSearchProcessor {
 
 		for (Field field : fields) {
 			if (field == null) {
-				throw new IllegalArgumentException("The search contains a null field.");
+				throw new IllegalArgumentException(
+						"The search contains a null field.");
 			}
-			if (field.getProperty() != null && field.getOperator() != Field.OP_CUSTOM)
+			if (field.getProperty() != null
+					&& field.getOperator() != Field.OP_CUSTOM)
 				securityCheckProperty(field.getProperty());
 		}
 
@@ -1088,24 +1164,25 @@ public abstract class BaseSearchProcessor {
 
 	/**
 	 * <ol>
-	 * <li>Check for injection attack in property strings. <li>Remove null
-	 * fetches from the list.
+	 * <li>Check for injection attack in property strings.
+	 * <li>Remove null fetches from the list.
 	 * </ol>
 	 */
 	protected List<String> checkAndCleanFetches(List<String> fetches) {
-		return SearchUtil.walkList(fetches, new SearchUtil.ItemVisitor<String>() {
-			@Override
-			public String visit(String fetch) {
-				securityCheckProperty(fetch);
-				return fetch;
-			}
-		}, true);
+		return SearchUtil.walkList(fetches,
+				new SearchUtil.ItemVisitor<String>() {
+					@Override
+					public String visit(String fetch) {
+						securityCheckProperty(fetch);
+						return fetch;
+					}
+				}, true);
 	}
 
 	/**
 	 * <ol>
-	 * <li>Check for injection attack in property strings. <li>Remove null sorts
-	 * from the list.
+	 * <li>Check for injection attack in property strings.
+	 * <li>Remove null sorts from the list.
 	 * </ol>
 	 */
 	protected List<Sort> checkAndCleanSorts(List<Sort> sorts) {
@@ -1122,9 +1199,10 @@ public abstract class BaseSearchProcessor {
 
 	/**
 	 * <ol>
-	 * <li>Check for injection attack in property strings. <li>Check for values
-	 * that are incongruent with the operator. <li>Remove null filters from the
-	 * list. <li>Simplify out junctions (and/or) that have only one sub-filter.
+	 * <li>Check for injection attack in property strings.
+	 * <li>Check for values that are incongruent with the operator.
+	 * <li>Remove null filters from the list.
+	 * <li>Simplify out junctions (and/or) that have only one sub-filter.
 	 * <li>Remove filters that require sub-filters but have none
 	 * (and/or/not/some/all/none)
 	 * </ol>
@@ -1137,13 +1215,15 @@ public abstract class BaseSearchProcessor {
 				if (filter == null) {
 					return null;
 				}
-				
-				// If the operator needs a value and no value is specified, ignore this filter.
-				// Only NULL, NOT_NULL, EMPTY, NOT_EMPTY and CUSTOM do not need a value.
+
+				// If the operator needs a value and no value is specified,
+				// ignore this filter.
+				// Only NULL, NOT_NULL, EMPTY, NOT_EMPTY and CUSTOM do not need
+				// a value.
 				if (filter.getValue() == null && !filter.isTakesNoValue()) {
 					return null;
 				}
-				
+
 				if (filter.getValue() != null) {
 					if (filter.isTakesListOfSubFilters()) {
 						// make sure that filters that take lists of filters
@@ -1169,9 +1249,11 @@ public abstract class BaseSearchProcessor {
 						// make sure filters that take filters actually have
 						// filters for their values
 						if (!(filter.getValue() instanceof Filter)) {
-							throw new IllegalArgumentException("The search has a filter (" + filter
-									+ ") for which the value should be of type Filter but is of type: "
-									+ filter.getValue().getClass());
+							throw new IllegalArgumentException(
+									"The search has a filter ("
+											+ filter
+											+ ") for which the value should be of type Filter but is of type: "
+											+ filter.getValue().getClass());
 						}
 					}
 				}
@@ -1186,8 +1268,10 @@ public abstract class BaseSearchProcessor {
 					return null;
 
 				if (filter.getOperator() == Filter.OP_CUSTOM) {
-					if (filter.getProperty() == null || filter.getProperty().isEmpty()) {
-						 throw new IllegalArgumentException("This search has a custom filter with no expression specified.");
+					if (filter.getProperty() == null
+							|| filter.getProperty().isEmpty()) {
+						throw new IllegalArgumentException(
+								"This search has a custom filter with no expression specified.");
 					}
 				} else if (!filter.isTakesNoProperty()) {
 					securityCheckProperty(filter.getProperty());
@@ -1235,4 +1319,5 @@ public abstract class BaseSearchProcessor {
 					"A property used in a Search may only contain word characters (alphabetic, numeric and underscore \"_\") and dot \".\" seperators. This constraint was violated: "
 							+ property);
 	}
+
 }

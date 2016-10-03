@@ -36,14 +36,14 @@ import java.util.List;
  * @author dwolverton
  */
 public class Filter implements Serializable {
-
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Property string representing the root entity of the search. This is just the empty string ("").
+	 * Property string representing the root entity of the search. This is just
+	 * the empty string ("").
 	 */
 	public static final String ROOT_ENTITY = "";
-	
+
 	/**
 	 * The name of the property to filter on. It may be nested. Examples:
 	 * <code>"name", "dateOfBirth", "employee.age", "employee.spouse.job.title"</code>
@@ -82,6 +82,7 @@ public class Filter implements Serializable {
 	}
 
 	public static final int OP_EQUAL = 0;
+	public static final int OP_IEQUAL = 14;
 	public static final int OP_NOT_EQUAL = 1;
 	public static final int OP_LESS_THAN = 2;
 	public static final int OP_GREATER_THAN = 3;
@@ -108,6 +109,13 @@ public class Filter implements Serializable {
 	 */
 	public static Filter equal(String property, Object value) {
 		return new Filter(property, value, OP_EQUAL);
+	}
+
+	/**
+	 * Create a new Filter using the IEQUAL operator.
+	 */
+	public static Filter iequal(String property, Object value) {
+		return new Filter(property, value, OP_IEQUAL);
 	}
 
 	/**
@@ -288,87 +296,105 @@ public class Filter implements Serializable {
 	public static Filter none(String property, Filter filter) {
 		return new Filter(property, filter, OP_NONE);
 	}
-	
+
 	/**
-	 * <p>Create a new Filter using a custom JPQL/HQL expression. This can be
-	 * any valid where-clause type expression. Reference properties by wrapping
-	 * them with curly braces ({}).
+	 * <p>
+	 * Create a new Filter using a custom JPQL/HQL expression. This can be any
+	 * valid where-clause type expression. Reference properties by wrapping them
+	 * with curly braces ({}).
 	 * 
-	 * <p>Here are some examples:
+	 * <p>
+	 * Here are some examples:
+	 * 
 	 * <pre>
 	 * // Referencing a property in a custom expression
-	 * Filter.custom("{serialNumber} like '%4780%'");
+	 * Filter.custom(&quot;{serialNumber} like '%4780%'&quot;);
 	 * // comparing two properties
-	 * Filter.custom("{parent.spotCount} > {spotCount} + 4");
+	 * Filter.custom(&quot;{parent.spotCount} &gt; {spotCount} + 4&quot;);
 	 * // A constant
-	 * Filter.custom("1 = 1");
+	 * Filter.custom(&quot;1 = 1&quot;);
 	 * // A function
-	 * Filter.custom("{dueDate} > current_date()");
+	 * Filter.custom(&quot;{dueDate} &gt; current_date()&quot;);
 	 * // A subquery
-	 * Filter.custom("{id} in (select pc.cat_id from popular_cats pc where pc.color = 'blue')");
+	 * Filter.custom(&quot;{id} in (select pc.cat_id from popular_cats pc where pc.color = 'blue')&quot;);
 	 * </pre>
 	 * 
-	 * @param expression JPQL/HQL where-clause expression
+	 * @param expression
+	 *            JPQL/HQL where-clause expression
 	 */
 	public static Filter custom(String expression) {
 		return new Filter(expression, null, OP_CUSTOM);
 	}
-	
+
 	/**
-	 * <p>Create a new Filter using a custom JPQL/HQL expression. This can be
-	 * any valid where-clause type expression. Reference properties by wrapping
-	 * them with curly braces ({}). The expression can also contain place
-	 * holders for the Filter values; these are indicated by JPQL-style
-	 * positional parameters (i.e. a question mark (?) followed by a number
-	 * indicating the parameter order, starting with one).
+	 * <p>
+	 * Create a new Filter using a custom JPQL/HQL expression. This can be any
+	 * valid where-clause type expression. Reference properties by wrapping them
+	 * with curly braces ({}). The expression can also contain place holders for
+	 * the Filter values; these are indicated by JPQL-style positional
+	 * parameters (i.e. a question mark (?) followed by a number indicating the
+	 * parameter order, starting with one).
 	 * 
-	 * <p>Here are some examples:
+	 * <p>
+	 * Here are some examples:
+	 * 
 	 * <pre>
 	 * // Referencing a property in a custom expression
-	 * Filter.custom("{serialNumber} like ?1", "%4780%");
+	 * Filter.custom(&quot;{serialNumber} like ?1&quot;, &quot;%4780%&quot;);
 	 * // comparing two properties
-	 * Filter.custom("{parent.spotCount} + ?1 > {spotCount} + ?2", 0, 4);
+	 * Filter.custom(&quot;{parent.spotCount} + ?1 &gt; {spotCount} + ?2&quot;, 0, 4);
 	 * // A constant
-	 * Filter.custom("?1 = ?2", 1, 1);
+	 * Filter.custom(&quot;?1 = ?2&quot;, 1, 1);
 	 * // A function
-	 * Filter.custom("?1 > current_date()", someDate);
+	 * Filter.custom(&quot;?1 &gt; current_date()&quot;, someDate);
 	 * // A subquery
-	 * Filter.custom("{id} in (select pc.cat_id from popular_cats pc where pc.color = ?1)", "blue");
+	 * Filter.custom(
+	 * 		&quot;{id} in (select pc.cat_id from popular_cats pc where pc.color = ?1)&quot;,
+	 * 		&quot;blue&quot;);
 	 * </pre>
 	 * 
-	 * @param expression JPQL/HQL where-clause expression
-	 * @param values one or more values to fill in the numbered placeholders in
-	 * 		  the expression
+	 * @param expression
+	 *            JPQL/HQL where-clause expression
+	 * @param values
+	 *            one or more values to fill in the numbered placeholders in the
+	 *            expression
 	 */
 	public static Filter custom(String expression, Object... values) {
 		return new Filter(expression, values, OP_CUSTOM);
 	}
 
 	/**
-	 * <p>Create a new Filter using a custom JPQL/HQL expression. This can be
-	 * any valid where-clause type expression. Reference properties by wrapping
-	 * them with curly braces ({}). The expression can also contain place
-	 * holders for the Filter values; these are indicated by JPQL-style
-	 * positional parameters (i.e. a question mark (?) followed by a number
-	 * indicating the parameter order, starting with one).
+	 * <p>
+	 * Create a new Filter using a custom JPQL/HQL expression. This can be any
+	 * valid where-clause type expression. Reference properties by wrapping them
+	 * with curly braces ({}). The expression can also contain place holders for
+	 * the Filter values; these are indicated by JPQL-style positional
+	 * parameters (i.e. a question mark (?) followed by a number indicating the
+	 * parameter order, starting with one).
 	 * 
-	 * <p>Here are some examples:
+	 * <p>
+	 * Here are some examples:
+	 * 
 	 * <pre>
 	 * // Referencing a property in a custom expression
-	 * Filter.custom("{serialNumber} like ?1", Collections.singleton("%4780%"));
+	 * Filter.custom(&quot;{serialNumber} like ?1&quot;, Collections.singleton(&quot;%4780%&quot;));
 	 * // comparing two properties
-	 * Filter.custom("{parent.spotCount} + ?1 > {spotCount} + ?2", Arrays.asList(0, 4));
+	 * Filter.custom(&quot;{parent.spotCount} + ?1 &gt; {spotCount} + ?2&quot;, Arrays.asList(0, 4));
 	 * // A constant
-	 * Filter.custom("?1 = ?2", Arrays.asList(1, 1));
+	 * Filter.custom(&quot;?1 = ?2&quot;, Arrays.asList(1, 1));
 	 * // A function
-	 * Filter.custom("?1 > current_date()", Collections.singleton(someDate));
+	 * Filter.custom(&quot;?1 &gt; current_date()&quot;, Collections.singleton(someDate));
 	 * // A subquery
-	 * Filter.custom("{id} in (select pc.cat_id from popular_cats pc where pc.color = ?1)", Collections.singleton("blue"));
+	 * Filter.custom(
+	 * 		&quot;{id} in (select pc.cat_id from popular_cats pc where pc.color = ?1)&quot;,
+	 * 		Collections.singleton(&quot;blue&quot;));
 	 * </pre>
 	 * 
-	 * @param expression JPQL/HQL where-clause expression
-	 * @param values one or more values to fill in the numbered placeholders in
-	 * 		  the expression
+	 * @param expression
+	 *            JPQL/HQL where-clause expression
+	 * @param values
+	 *            one or more values to fill in the numbered placeholders in the
+	 *            expression
 	 */
 	public static Filter custom(String expression, Collection<?> values) {
 		return new Filter(expression, values, OP_CUSTOM);
@@ -421,7 +447,7 @@ public class Filter implements Serializable {
 	public void setOperator(int operator) {
 		this.operator = operator;
 	}
-	
+
 	/**
 	 * Returns the value as a List, converting if necessary. If the value is a
 	 * List, it will be returned directly. If it is any other Collection type or
@@ -438,7 +464,8 @@ public class Filter implements Serializable {
 		} else if (value instanceof Collection<?>) {
 			return new ArrayList<Object>((Collection<?>) value);
 		} else if (value.getClass().isArray()) {
-			ArrayList<Object> list = new ArrayList<Object>(Array.getLength(value));
+			ArrayList<Object> list = new ArrayList<Object>(
+					Array.getLength(value));
 			for (int i = 0; i < Array.getLength(value); i++) {
 				list.add(Array.get(value, i));
 			}
@@ -447,7 +474,7 @@ public class Filter implements Serializable {
 			return Collections.singletonList(value);
 		}
 	}
-	
+
 	/**
 	 * Returns the value as a Collection, converting if necessary. If the value
 	 * is a Collection, it will be returned directly. If it is an Array, an
@@ -463,7 +490,8 @@ public class Filter implements Serializable {
 		} else if (value instanceof Collection<?>) {
 			return (Collection<?>) value;
 		} else if (value.getClass().isArray()) {
-			ArrayList<Object> list = new ArrayList<Object>(Array.getLength(value));
+			ArrayList<Object> list = new ArrayList<Object>(
+					Array.getLength(value));
 			for (int i = 0; i < Array.getLength(value); i++) {
 				list.add(Array.get(value, i));
 			}
@@ -540,7 +568,8 @@ public class Filter implements Serializable {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + operator;
-		result = prime * result + ((property == null) ? 0 : property.hashCode());
+		result = prime * result
+				+ ((property == null) ? 0 : property.hashCode());
 		result = prime * result + ((value == null) ? 0 : value.hashCode());
 		return result;
 	}
@@ -574,25 +603,38 @@ public class Filter implements Serializable {
 	public String toString() {
 		switch (operator) {
 		case Filter.OP_IN:
-			return "`" + property + "` in (" + InternalUtil.paramDisplayString(value) + ")";
+			return "`" + property + "` in ("
+					+ InternalUtil.paramDisplayString(value) + ")";
 		case Filter.OP_NOT_IN:
-			return "`" + property + "` not in (" + InternalUtil.paramDisplayString(value) + ")";
+			return "`" + property + "` not in ("
+					+ InternalUtil.paramDisplayString(value) + ")";
 		case Filter.OP_EQUAL:
-			return "`" + property + "` = " + InternalUtil.paramDisplayString(value);
+			return "`" + property + "` = "
+					+ InternalUtil.paramDisplayString(value);
+		case Filter.OP_IEQUAL:
+			return "`" + property + "` IEQUAL "
+					+ InternalUtil.paramDisplayString(value);
 		case Filter.OP_NOT_EQUAL:
-			return "`" + property + "` != " + InternalUtil.paramDisplayString(value);
+			return "`" + property + "` != "
+					+ InternalUtil.paramDisplayString(value);
 		case Filter.OP_GREATER_THAN:
-			return "`" + property + "` > " + InternalUtil.paramDisplayString(value);
+			return "`" + property + "` > "
+					+ InternalUtil.paramDisplayString(value);
 		case Filter.OP_LESS_THAN:
-			return "`" + property + "` < " + InternalUtil.paramDisplayString(value);
+			return "`" + property + "` < "
+					+ InternalUtil.paramDisplayString(value);
 		case Filter.OP_GREATER_OR_EQUAL:
-			return "`" + property + "` >= " + InternalUtil.paramDisplayString(value);
+			return "`" + property + "` >= "
+					+ InternalUtil.paramDisplayString(value);
 		case Filter.OP_LESS_OR_EQUAL:
-			return "`" + property + "` <= " + InternalUtil.paramDisplayString(value);
+			return "`" + property + "` <= "
+					+ InternalUtil.paramDisplayString(value);
 		case Filter.OP_LIKE:
-			return "`" + property + "` LIKE " + InternalUtil.paramDisplayString(value);
+			return "`" + property + "` LIKE "
+					+ InternalUtil.paramDisplayString(value);
 		case Filter.OP_ILIKE:
-			return "`" + property + "` ILIKE " + InternalUtil.paramDisplayString(value);
+			return "`" + property + "` ILIKE "
+					+ InternalUtil.paramDisplayString(value);
 		case Filter.OP_NULL:
 			return "`" + property + "` IS NULL";
 		case Filter.OP_NOT_NULL:
@@ -604,8 +646,8 @@ public class Filter implements Serializable {
 		case Filter.OP_AND:
 		case Filter.OP_OR:
 			if (!(value instanceof List)) {
-				return (operator == Filter.OP_AND ? "AND: " : "OR: ") + "**INVALID VALUE - NOT A LIST: (" + value
-						+ ") **";
+				return (operator == Filter.OP_AND ? "AND: " : "OR: ")
+						+ "**INVALID VALUE - NOT A LIST: (" + value + ") **";
 			}
 
 			String op = operator == Filter.OP_AND ? " and " : " or ";
@@ -625,32 +667,40 @@ public class Filter implements Serializable {
 				}
 			}
 			if (first)
-				return (operator == Filter.OP_AND ? "AND: " : "OR: ") + "**EMPTY LIST**";
+				return (operator == Filter.OP_AND ? "AND: " : "OR: ")
+						+ "**EMPTY LIST**";
 
 			sb.append(")");
 			return sb.toString();
 		case Filter.OP_NOT:
 			if (!(value instanceof Filter)) {
-				return "NOT: **INVALID VALUE - NOT A FILTER: (" + value + ") **";
+				return "NOT: **INVALID VALUE - NOT A FILTER: (" + value
+						+ ") **";
 			}
 			return "not " + value.toString();
 		case Filter.OP_SOME:
 			if (!(value instanceof Filter)) {
-				return "SOME: **INVALID VALUE - NOT A FILTER: (" + value + ") **";
+				return "SOME: **INVALID VALUE - NOT A FILTER: (" + value
+						+ ") **";
 			}
 			return "some `" + property + "` {" + value.toString() + "}";
 		case Filter.OP_ALL:
 			if (!(value instanceof Filter)) {
-				return "ALL: **INVALID VALUE - NOT A FILTER: (" + value + ") **";
+				return "ALL: **INVALID VALUE - NOT A FILTER: (" + value
+						+ ") **";
 			}
 			return "all `" + property + "` {" + value.toString() + "}";
 		case Filter.OP_NONE:
 			if (!(value instanceof Filter)) {
-				return "NONE: **INVALID VALUE - NOT A FILTER: (" + value + ") **";
+				return "NONE: **INVALID VALUE - NOT A FILTER: (" + value
+						+ ") **";
 			}
 			return "none `" + property + "` {" + value.toString() + "}";
 		case Filter.OP_CUSTOM:
-			if (value == null || (value instanceof Collection && ((Collection) value).isEmpty()) || (value.getClass().isArray() && Array.getLength(value) == 0)) {
+			if (value == null
+					|| (value instanceof Collection && ((Collection) value)
+							.isEmpty())
+					|| (value.getClass().isArray() && Array.getLength(value) == 0)) {
 				return "CUSTOM[" + property + "]";
 			} else {
 				StringBuilder sb2 = new StringBuilder();
@@ -680,7 +730,8 @@ public class Filter implements Serializable {
 				sb2.append(")");
 			}
 		default:
-			return "**INVALID OPERATOR: (" + operator + ") - VALUE: " + InternalUtil.paramDisplayString(value) + " **";
+			return "**INVALID OPERATOR: (" + operator + ") - VALUE: "
+					+ InternalUtil.paramDisplayString(value) + " **";
 		}
 	}
 
